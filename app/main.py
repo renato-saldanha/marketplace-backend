@@ -82,6 +82,37 @@ def health_check():
     return {"status": "ok", "mensagem": "API funcionando corretamente"}
 
 
+@app.get("/init-database")
+def inicializar_banco():
+    """
+    Endpoint especial para inicializar banco de dados.
+    ATENÇÃO: Use apenas uma vez após deploy!
+    """
+    import subprocess
+    import sys
+    
+    try:
+        # Executar init_db.py
+        resultado = subprocess.run(
+            [sys.executable, "init_db.py"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        return {
+            "status": "sucesso" if resultado.returncode == 0 else "erro",
+            "codigo_saida": resultado.returncode,
+            "saida": resultado.stdout,
+            "erro": resultado.stderr
+        }
+    except Exception as e:
+        return {
+            "status": "erro",
+            "mensagem": f"Erro ao inicializar banco: {str(e)}"
+        }
+
+
 @app.get("/uploads/{tipo}/{id}/{arquivo}")
 async def servir_imagem(tipo: str, id: str, arquivo: str):
     """

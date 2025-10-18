@@ -20,7 +20,16 @@ def criar_banco_dados():
     # Criar engine
     engine = create_engine(configuracoes.database_url)
     
+    # IMPORTANTE: Dropar tabelas existentes e recriar (resolve problema de tipos duplicados)
+    print("INFO - Removendo tabelas existentes (se houver)...")
+    try:
+        Base.metadata.drop_all(bind=engine)
+        print("OK - Tabelas removidas")
+    except Exception as e:
+        print(f"INFO - Nenhuma tabela para remover ou erro: {e}")
+    
     # Criar todas as tabelas
+    print("INFO - Criando tabelas...")
     Base.metadata.create_all(bind=engine)
     
     print("OK - Banco de dados criado com sucesso!")
