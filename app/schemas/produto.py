@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, ConfigDict, field_serializer
 from typing import Optional
 from datetime import datetime
 from decimal import Decimal
+import os
 from ..models.produto import StatusProduto
 
 
@@ -59,6 +60,21 @@ class ProdutoResposta(ProdutoBase):
     def serialize_status(self, valor: StatusProduto) -> str:
         """Converter enum para string na serialização"""
         return valor.value if hasattr(valor, 'value') else str(valor)
+    
+    # Serializer para construir URL completa da imagem
+    @field_serializer('imagem_url')
+    def serialize_imagem_url(self, valor: Optional[str]) -> Optional[str]:
+        """Construir URL completa da imagem incluindo domínio"""
+        if not valor:
+            return None
+        
+        # Se já é URL completa (começa com http), retorna como está
+        if valor.startswith('http'):
+            return valor
+        
+        # Se é URL relativa, adiciona o domínio do servidor
+        server_url = os.getenv('SERVER_URL', 'http://localhost:8000')
+        return f"{server_url}{valor}"
 
 
 class FiltrosProduto(BaseModel):

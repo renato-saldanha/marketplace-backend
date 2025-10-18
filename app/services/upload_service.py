@@ -128,8 +128,9 @@ class ServicoUpload:
             with open(caminho_arquivo, 'wb') as f:
                 f.write(dados_otimizados)
             
-            url_completa = f"{self.SERVER_URL}/uploads/produtos/{produto_id}/{nome_arquivo}"
-            return True, None, url_completa
+            # Retornar URL relativa (igual ao perfil)
+            url_relativa = f"/uploads/produtos/{produto_id}/{nome_arquivo}"
+            return True, None, url_relativa
             
         except Exception as e:
             return False, f"Erro ao salvar arquivo: {str(e)}", None
