@@ -268,14 +268,3 @@ pip install -r requirements.txt --force-reinstall
 alembic stamp head
 alembic upgrade head
 ```
-
-## 📞 Suporte
-
-Para problemas ou dúvidas:
-1. Verifique os logs do servidor
-2. Consulte a documentação da API em `/docs`
-3. Verifique as configurações do banco de dados
-
----
-
-**Desenvolvido com ❤️ para o desafio técnico da Zeine**
