@@ -1,0 +1,7 @@
+# Ignorar todos os arquivos de upload
+*
+# Mas manter a estrutura de pastas
+!.gitignore
+!perfis/.gitkeep
+!produtos/.gitkeep
+

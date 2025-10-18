@@ -1,0 +1,82 @@
+# Render Blueprint - Infraestrutura como Código
+# Este arquivo permite criar toda a infraestrutura automaticamente no Render
+
+services:
+  # Banco de Dados PostgreSQL
+  - type: pserv
+    name: marketplace-db
+    env: postgres
+    plan: free  # Mude para 'starter' para produção
+    databaseName: marketplace_db
+    databaseUser: marketplace_user
+    region: oregon  # Escolha: oregon, frankfurt, singapore, ohio
+
+  # API Backend
+  - type: web
+    name: marketplace-backend
+    runtime: python3
+    region: oregon  # Mesma região do banco
+    plan: free  # Mude para 'starter' para produção
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+    healthCheckPath: /health
+    
+    envVars:
+      # Aplicação
+      - key: NOME_APLICACAO
+        value: Marketplace API
+      
+      - key: VERSAO
+        value: "1.0.0"
+      
+      - key: DEBUG
+        value: false
+      
+      - key: HOST
+        value: 0.0.0.0
+      
+      - key: PORTA
+        value: 8000
+      
+      # Banco de Dados (referência ao serviço criado acima)
+      - key: DATABASE_URL
+        fromDatabase:
+          name: marketplace-db
+          property: connectionString
+      
+      # Segurança - DEFINA ESSES VALORES NO PAINEL DO RENDER
+      - key: CHAVE_SECRETA
+        generateValue: true  # Gera automaticamente uma chave segura
+      
+      - key: ALGORITMO
+        value: HS256
+      
+      - key: TEMPO_EXPIRACAO_TOKEN
+        value: 30
+      
+      # CORS - Atualize com a URL do seu frontend
+      - key: ORIGENS_PERMITIDAS
+        value: '["https://seu-frontend.onrender.com","http://localhost:3000"]'
+      
+      # Upload
+      - key: TAMANHO_MAXIMO_ARQUIVO
+        value: 5242880
+      
+      - key: PASTA_UPLOADS
+        value: uploads
+
+    # Disco persistente para uploads (opcional, apenas planos pagos)
+    # disk:
+    #   name: marketplace-uploads
+    #   mountPath: /opt/render/project/src/backend/uploads
+    #   sizeGB: 1
+
+# Como usar este arquivo:
+# 1. Faça push deste arquivo para seu repositório
+# 2. No Render Dashboard, vá em "Blueprints"
+# 3. Clique em "New Blueprint Instance"
+# 4. Conecte seu repositório
+# 5. O Render criará automaticamente todos os serviços definidos acima
+
+

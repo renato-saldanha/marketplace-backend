@@ -1,0 +1,29 @@
+# FastAPI e servidor
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+gunicorn==21.2.0
+
+# Banco de dados
+sqlalchemy==2.0.23
+alembic==1.12.1
+psycopg2-binary==2.9.9
+
+# Autenticação e segurança
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# Validação de dados
+pydantic==2.5.0
+pydantic-settings==2.1.0
+email-validator==2.1.0
+
+# Upload de arquivos
+pillow>=10.0.0
+
+# CORS
+fastapi-cors==0.0.6
+
+# Utilitários
+python-dotenv==1.0.0
+psutil==5.9.6
