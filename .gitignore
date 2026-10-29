@@ -10,3 +10,5 @@ venv/
 *.db
 
 # Uploads (mantem a pasta via uploads/.gitignore)
+.vercel
+.env.local

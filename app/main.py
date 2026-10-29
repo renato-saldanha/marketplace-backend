@@ -76,6 +76,13 @@ def inicializar_banco():
     import subprocess
     import sys
     
+    if not configuracoes.habilitar_init_database:
+        return Response(
+            content="Rota desativada. Defina HABILITAR_INIT_DATABASE=true para usar.",
+            status_code=403,
+            media_type="text/plain"
+        )
+    
     try:
         resultado = subprocess.run(
             [sys.executable, "init_db.py"],

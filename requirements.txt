@@ -25,3 +25,5 @@ pillow==11.0.0
 # Utilitários
 python-dotenv==1.0.1
 psutil==6.1.0
+# Armazenamento de imagens na Vercel (ativado por BLOB_READ_WRITE_TOKEN)
+vercel==0.7.2

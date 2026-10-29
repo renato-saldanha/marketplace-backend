@@ -1,10 +1,15 @@
+import os
 import pytest
 import asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+# Evita que a aplicacao tente conectar ao banco real durante os testes
+os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+
 from app.main import app
 from app.database.database import obter_sessao, Base
+from app.api.deps import obter_sessao_db
 from app.core.seguranca import criar_token_acesso
 
 # Configuração do banco de dados de teste
@@ -40,6 +45,7 @@ def client(db_session):
             pass
     
     app.dependency_overrides[obter_sessao] = override_get_db
+    app.dependency_overrides[obter_sessao_db] = override_get_db
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()

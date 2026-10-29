@@ -238,6 +238,33 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 Configurações similares ao Render. Consulte a documentação específica de cada plataforma.
 
+## ☁️ Demo na Vercel
+
+A API roda como função Python na Vercel (FastAPI em `app/main.py`, configurado em `vercel.json`) com Postgres da Neon e imagens no Vercel Blob. Dados da demo são fictícios.
+
+- API: https://marketplace-api-beryl.vercel.app (docs em `/docs`)
+- Login da demo: `vendedor@teste.com` / `senha123`
+
+Variáveis de ambiente do projeto:
+
+| Variável | Uso |
+| --- | --- |
+| `DATABASE_URL` | Postgres (vem da integração Neon; `URL_BANCO_DADOS` também é aceita) |
+| `CHAVE_SECRETA` | Chave de assinatura do JWT |
+| `DEBUG` | `false` em produção |
+| `ORIGENS_PERMITIDAS` | CORS, lista JSON. Ex.: `["https://meu-front.vercel.app"]` |
+| `SERVER_URL` | URL pública da API |
+| `BLOB_READ_WRITE_TOKEN` | Se definida, os uploads vão para o Vercel Blob; sem ela, usam a pasta `uploads/` |
+
+Criar as tabelas e os dados fictícios (pode rodar mais de uma vez, não apaga nada):
+
+```bash
+vercel env pull .env.local
+DATABASE_URL="..." python seed_demo.py
+```
+
+Limitações: sem disco persistente, corpo de requisição de até ~4,5 MB (imagens grandes falham) e a rota `/init-database` fica desativada, a menos que `HABILITAR_INIT_DATABASE=true`.
+
 ## 📝 Logs
 
 Os logs são exibidos no console. Para produção, configure um sistema de logs adequado.

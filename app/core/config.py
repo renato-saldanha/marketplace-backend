@@ -1,6 +1,7 @@
 """
 Configurações do sistema de marketplace
 """
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -19,7 +20,13 @@ class Configuracoes(BaseSettings):
     debug: bool = True
     
     # Configurações do banco de dados
-    database_url: str = "postgresql://marketplace_user:marketplace_pass@postgres:5432/marketplace_db"
+    database_url: str = Field(
+        "postgresql://marketplace_user:marketplace_pass@postgres:5432/marketplace_db",
+        validation_alias=AliasChoices("DATABASE_URL", "URL_BANCO_DADOS"),
+    )
+    
+    # Rota que recria o banco (apaga os dados): desativada por padrao
+    habilitar_init_database: bool = False
     
     # Configurações de segurança
     chave_secreta: str = "sua-chave-secreta-super-segura-aqui-mude-em-producao"
@@ -38,6 +45,14 @@ class Configuracoes(BaseSettings):
         "http://localhost:3001",
         "http://127.0.0.1:3001",
     ]
+    
+    @field_validator("database_url")
+    @classmethod
+    def normalizar_database_url(cls, valor: str) -> str:
+        """Provedores como Neon/Heroku entregam 'postgres://', que o SQLAlchemy 2 nao aceita"""
+        if valor.startswith("postgres://"):
+            return "postgresql://" + valor[len("postgres://"):]
+        return valor
     
     class Config:
         env_file = ".env"

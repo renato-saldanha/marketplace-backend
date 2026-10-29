@@ -31,11 +31,36 @@ class ServicoUpload:
     }
     
     def __init__(self):
-        self._garantir_diretorios()
+        if not self.usar_blob:
+            self._garantir_diretorios()
+    
+    @property
+    def usar_blob(self) -> bool:
+        # Em ambientes sem disco persistente (ex.: Vercel) os arquivos vao para o Vercel Blob
+        return bool(os.getenv('BLOB_READ_WRITE_TOKEN'))
     
     def _garantir_diretorios(self):
         self.PERFIS_DIR.mkdir(parents=True, exist_ok=True)
         self.PRODUTOS_DIR.mkdir(parents=True, exist_ok=True)
+    
+    def _enviar_blob(self, caminho: str, dados: bytes, sufixo_aleatorio: bool = False) -> str:
+        from vercel.blob import put
+        resultado = put(caminho, dados, access='public', content_type='image/jpeg', add_random_suffix=sufixo_aleatorio)
+        return resultado.url
+    
+    def _remover_blobs(self, prefixo: str, manter: Optional[set] = None):
+        from vercel.blob import list_objects, delete
+        manter = manter or set()
+        itens = list_objects(prefix=prefixo).blobs
+        urls = [item.url for item in itens if item.url not in manter]
+        if urls:
+            delete(urls)
+    
+    def url_base_perfil(self, usuario_id: str, urls: dict) -> str:
+        """Valor a ser gravado em foto_perfil_url (caminho base sem o nome do arquivo)"""
+        if self.usar_blob:
+            return urls['original'].rsplit('/', 1)[0]
+        return f"/uploads/perfis/{usuario_id}"
     
     def _validar_imagem(self, dados_base64: str) -> Tuple[bool, Optional[str], Optional[bytes]]:    
         try:
@@ -85,10 +110,21 @@ class ServicoUpload:
         if not valido:
             return False, erro, None
         
+        urls = {}
+        
+        if self.usar_blob:
+            try:
+                pasta = uuid.uuid4().hex[:8]
+                for nome_tamanho, dimensoes in self.TAMANHOS_PERFIL.items():
+                    dados_otimizados = self._otimizar_imagem(dados_binarios, dimensoes) if dimensoes else self._otimizar_imagem(dados_binarios)
+                    urls[nome_tamanho] = self._enviar_blob(f"perfis/{usuario_id}/{pasta}/{nome_tamanho}.jpg", dados_otimizados)
+                self._remover_blobs(f"perfis/{usuario_id}/", manter=set(urls.values()))
+                return True, None, urls
+            except Exception as e:
+                return False, f"Erro ao salvar arquivo: {str(e)}", None
+        
         pasta_usuario = self.PERFIS_DIR / str(usuario_id)
         pasta_usuario.mkdir(parents=True, exist_ok=True)
-        
-        urls = {}
         
         try:
             for nome_tamanho, dimensoes in self.TAMANHOS_PERFIL.items():
@@ -116,6 +152,15 @@ class ServicoUpload:
         if not valido:
             return False, erro, None
         
+        if self.usar_blob:
+            try:
+                dados_otimizados = self._otimizar_imagem(dados_binarios, (800, 800))
+                url = self._enviar_blob(f"produtos/{produto_id}/foto_{indice}.jpg", dados_otimizados, sufixo_aleatorio=True)
+                self._remover_blobs(f"produtos/{produto_id}/", manter={url})
+                return True, None, url
+            except Exception as e:
+                return False, f"Erro ao salvar arquivo: {str(e)}", None
+        
         pasta_produto = self.PRODUTOS_DIR / str(produto_id)
         pasta_produto.mkdir(parents=True, exist_ok=True)
         
@@ -136,6 +181,13 @@ class ServicoUpload:
             return False, f"Erro ao salvar arquivo: {str(e)}", None
     
     def remover_foto_perfil(self, usuario_id: str) -> bool:
+        if self.usar_blob:
+            try:
+                self._remover_blobs(f"perfis/{usuario_id}/")
+                return True
+            except Exception:
+                return False
+        
         pasta_usuario = self.PERFIS_DIR / str(usuario_id)
         
         if pasta_usuario.exists():
@@ -150,6 +202,13 @@ class ServicoUpload:
         return True
     
     def remover_fotos_produto(self, produto_id: str) -> bool:
+        if self.usar_blob:
+            try:
+                self._remover_blobs(f"produtos/{produto_id}/")
+                return True
+            except Exception:
+                return False
+        
         pasta_produto = self.PRODUTOS_DIR / str(produto_id)
         
         if pasta_produto.exists():

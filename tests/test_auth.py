@@ -38,7 +38,7 @@ class TestAutenticacao:
         response = client.post("/api/auth/registrar", json=usuario_teste)
         
         assert response.status_code == 400
-        assert "Email já cadastrado" in response.json()["detail"]
+        assert "Email já está em uso" in response.json()["detail"]
     
     def test_login_sucesso(self, client: TestClient, usuario_teste):
         """Testa login com credenciais válidas."""
@@ -51,7 +51,7 @@ class TestAutenticacao:
             "senha": usuario_teste["senha"]
         }
         
-        response = client.post("/api/auth/login", data=dados_login)
+        response = client.post("/api/auth/login", json=dados_login)
         
         assert response.status_code == 200
         data = response.json()
@@ -72,9 +72,9 @@ class TestAutenticacao:
             "senha": "senha_errada"
         }
         
-        response = client.post("/api/auth/login", data=dados_login)
+        response = client.post("/api/auth/login", json=dados_login)
         
-        assert response.status_code == 422
+        assert response.status_code == 401
     
     def test_obter_usuario_autenticado(self, client: TestClient, usuario_teste, headers_autenticacao):
         """Testa obtenção de dados do usuário autenticado."""

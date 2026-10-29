@@ -69,7 +69,7 @@ class ServicoUsuario:
             
             if sucesso and urls:
                 # Armazenar o caminho base (sem o nome do arquivo)
-                foto_perfil_url = f"/uploads/perfis/{usuario_id}"
+                foto_perfil_url = servico_upload.url_base_perfil(usuario_id, urls)
             else:
                 print(f"Aviso: Erro ao salvar foto do perfil: {erro}")
         
@@ -155,7 +155,7 @@ class ServicoUsuario:
             )
             
             if sucesso and urls:
-                usuario.foto_perfil_url = f"/uploads/perfis/{usuario_id}"
+                usuario.foto_perfil_url = servico_upload.url_base_perfil(usuario_id, urls)
             else:
                 print(f"Aviso: Erro ao salvar nova foto do perfil: {erro}")
         
